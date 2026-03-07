@@ -3,18 +3,14 @@ import { redis } from "bun";
 import { EventEmitter } from "node:events";
 import { Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
+import { formatEventDate } from "./utils/formatEventDate";
 import { getEventChanges } from "./utils/getEventChanges";
-import { styleDate } from "./utils/styleDate";
+import { getEventStartTime } from "./utils/getEventStartTime";
 
 const events = new EventEmitter();
 const wa = new Client({
   authStrategy: new LocalAuth(),
 });
-
-function formatEventDate(event: CalendarEvent | null, key: "start" | "end") {
-  const value = event?.[key].dateTime ?? event?.[key].date;
-  return value ? styleDate(value) : "fecha desconocida";
-}
 
 wa.once("ready", async () => {
   console.log("[WA] client ready!");
@@ -49,7 +45,9 @@ Bun.serve({
           return new Response("Unauthorized", { status: 401 });
         }
 
-        const data = (await request.body?.json()) as CalendarEvent[];
+        const data = ((await request.body?.json()) as CalendarEvent[]).sort(
+          (left, right) => getEventStartTime(left) - getEventStartTime(right)
+        );
 
         let globalChanges = await Promise.all(
           data.map(async (incomingEvent) => {

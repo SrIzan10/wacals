@@ -26,7 +26,7 @@ function getRelativeDayLabel(diffDays: number) {
 export function styleDate(dateStr: string) {
   const eventDate = new Date(dateStr);
   const day = eventDate.getDate();
-  const month = eventDate.toLocaleString("es-ES", { month: "long" });
+  const month = eventDate.toLocaleString("es-ES", { month: "2-digit" });
   const time = eventDate.toLocaleTimeString("es-ES", {
     hour: "2-digit",
     minute: "2-digit",
