@@ -4,11 +4,17 @@ import { EventEmitter } from "node:events";
 import { Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
 import { getEventChanges } from "./utils/getEventChanges";
+import { styleDate } from "./utils/styleDate";
 
 const events = new EventEmitter();
 const wa = new Client({
   authStrategy: new LocalAuth(),
 });
+
+function formatEventDate(event: CalendarEvent | null, key: "start" | "end") {
+  const value = event?.[key].dateTime ?? event?.[key].date;
+  return value ? styleDate(value) : "fecha desconocida";
+}
 
 wa.once("ready", async () => {
   console.log("[WA] client ready!");
@@ -17,15 +23,18 @@ wa.on("qr", (qr) => {
   qrcode.generate(qr, { small: true });
 });
 
-events.on("eventUpdate", async ({ id, changes }) => {
-  const eventData = await redis.get(`cal:${id}`);
-  if (!eventData) return;
+events.on("eventUpdate", async ({ changes, previousEvent, currentEvent }) => {
+  const changeMap = {
+    created: `📅➕ *${currentEvent.summary}* el *${formatEventDate(currentEvent, "start")}*`,
+    summaryUpdate: `📄✏️ *${previousEvent?.summary}* → *${currentEvent.summary}*.`,
+    startUpdate: `📅✏️ *${formatEventDate(previousEvent, "start")}* → *${formatEventDate(currentEvent, "start")}*.`,
+    endUpdate: `📅✏️ *${formatEventDate(previousEvent, "end")}* → *${formatEventDate(currentEvent, "end")}*.`,
+  } satisfies Record<EventChange, string>;
 
-  const event = JSON.parse(eventData) as CalendarEvent;
   const changeText = changes
-    .map((change: EventChange) => `- ${change}`)
+    .map((change: EventChange) => `- ${changeMap[change]}`)
     .join("\n");
-  const message = `Event ${event.summary} (${event.id}) has been updated:\n${changeText}`;
+  const message = `Nuevo cambio en el Calendar:\n${changeText}`;
   await wa.sendMessage(process.env.CHAT_ID!, message);
 });
 
@@ -55,18 +64,23 @@ Bun.serve({
               JSON.stringify(incomingEvent)
             );
 
-            return { id: incomingEvent.id, changes };
+            return {
+              id: incomingEvent.id,
+              changes,
+              previousEvent: storedEvent,
+              currentEvent: incomingEvent,
+            };
           })
         );
 
-        globalChanges.forEach(({ id, changes }) => {
-          if (changes.length > 0) {
-            events.emit("eventUpdate", { id, changes });
-          }
-        });
-
         // slicing because if its more than 5 then something has gone very wrong
         globalChanges = globalChanges.slice(-5);
+
+        globalChanges.forEach(({ id, changes, previousEvent, currentEvent }) => {
+          if (changes.length > 0) {
+            events.emit("eventUpdate", { id, changes, previousEvent, currentEvent });
+          }
+        });
 
         console.log("received:", data);
         return new Response(`thanks`);
