@@ -10,6 +10,12 @@ import { getEventStartTime } from "./utils/getEventStartTime";
 const events = new EventEmitter();
 const wa = new Client({
   authStrategy: new LocalAuth(),
+  puppeteer: {
+    args:
+      process.env.NODE_ENV === "production"
+        ? ["--no-sandbox", "--disable-setuid-sandbox"]
+        : [],
+  },
 });
 
 wa.once("ready", async () => {
