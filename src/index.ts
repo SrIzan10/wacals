@@ -21,10 +21,21 @@ wa.on("qr", (qr) => {
 
 events.on("eventUpdate", async ({ changes, previousEvent, currentEvent }) => {
   const changeMap = {
-    created: `📅➕ *${currentEvent.summary}* el *${formatEventDate(currentEvent, "start")}*`,
-    summaryUpdate: `📄✏️ *${previousEvent?.summary}* → *${currentEvent.summary}*.`,
-    startUpdate: `📅✏️ *${formatEventDate(previousEvent, "start")}* → *${formatEventDate(currentEvent, "start")}*.`,
-    endUpdate: `📅✏️ *${formatEventDate(previousEvent, "end")}* → *${formatEventDate(currentEvent, "end")}*.`,
+    created: `📅➕ *${currentEvent.summary}* - ${formatEventDate(
+      currentEvent,
+      "start"
+    )}`,
+    summaryUpdate: `📝 Nombre: *${previousEvent?.summary ?? "sin título"}* → *${
+      currentEvent.summary ?? "sin título"
+    }*`,
+    startUpdate: `🕐 Inicio: *${formatEventDate(
+      previousEvent,
+      "start"
+    )}* → *${formatEventDate(currentEvent, "start")}*`,
+    endUpdate: `🕑 Fin: *${formatEventDate(
+      previousEvent,
+      "end"
+    )}* → *${formatEventDate(currentEvent, "end")}*`,
   } satisfies Record<EventChange, string>;
 
   const changeText = changes
@@ -74,13 +85,19 @@ Bun.serve({
         // slicing because if its more than 5 then something has gone very wrong
         globalChanges = globalChanges.slice(-5);
 
-        globalChanges.forEach(({ id, changes, previousEvent, currentEvent }) => {
-          if (changes.length > 0) {
-            events.emit("eventUpdate", { id, changes, previousEvent, currentEvent });
+        globalChanges.forEach(
+          ({ id, changes, previousEvent, currentEvent }) => {
+            if (changes.length > 0) {
+              events.emit("eventUpdate", {
+                id,
+                changes,
+                previousEvent,
+                currentEvent,
+              });
+            }
           }
-        });
+        );
 
-        console.log("received:", data);
         return new Response(`thanks`);
       },
     },
