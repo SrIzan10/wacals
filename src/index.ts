@@ -25,17 +25,17 @@ events.on("eventUpdate", async ({ changes, previousEvent, currentEvent }) => {
       currentEvent,
       "start"
     )}`,
-    summaryUpdate: `📝 Nombre: *${previousEvent?.summary ?? "sin título"}* → *${
+    summaryUpdate: `📝 Nombre: ${previousEvent?.summary ?? "sin título"} → *${
       currentEvent.summary ?? "sin título"
     }*`,
-    startUpdate: `🕐 Inicio: *${formatEventDate(
+    startUpdate: `🕐 Inicio: ${formatEventDate(
       previousEvent,
       "start"
-    )}* → *${formatEventDate(currentEvent, "start")}*`,
-    endUpdate: `🕑 Fin: *${formatEventDate(
+    )} → *${formatEventDate(currentEvent, "start")}*`,
+    endUpdate: `🕑 Fin: ${formatEventDate(
       previousEvent,
       "end"
-    )}* → *${formatEventDate(currentEvent, "end")}*`,
+    )} → *${formatEventDate(currentEvent, "end")}*`,
   } satisfies Record<EventChange, string>;
 
   const changeText = changes
