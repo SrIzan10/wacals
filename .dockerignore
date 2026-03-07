@@ -1,0 +1,11 @@
+.git
+.gitignore
+node_modules
+.env
+.env.*
+.wwebjs_auth
+.wwebjs_cache
+coverage
+dist
+out
+.wwebjs*
