@@ -6,6 +6,20 @@ import qrcode from "qrcode-terminal";
 import { formatEventDate } from "./utils/formatEventDate";
 import { getEventChanges } from "./utils/getEventChanges";
 import { getEventStartTime } from "./utils/getEventStartTime";
+import { rmSync, existsSync } from "node:fs";
+import { join } from "node:path";
+
+// remove singletonlock
+const authPath = join(process.cwd(), ".wwebjs_auth");
+const singletonLock = join(authPath, "SingletonLock");
+const singletonCookie = join(authPath, "SingletonCookie");
+const singletonSocket = join(authPath, "SingletonSocket");
+for (const lockFile of [singletonLock, singletonCookie, singletonSocket]) {
+  if (existsSync(lockFile)) {
+    rmSync(lockFile, { force: true });
+    console.log(`[WA] removed stale lock file: ${lockFile}`);
+  }
+}
 
 const events = new EventEmitter();
 const wa = new Client({
@@ -29,18 +43,18 @@ events.on("eventUpdate", async ({ changes, previousEvent, currentEvent }) => {
   const changeMap = {
     created: `📅➕ *${currentEvent.summary}* - ${formatEventDate(
       currentEvent,
-      "start"
+      "start",
     )}`,
     summaryUpdate: `📝 Nombre: ${previousEvent?.summary ?? "sin título"} → *${
       currentEvent.summary ?? "sin título"
     }*`,
     startUpdate: `🕐 Inicio: ${formatEventDate(
       previousEvent,
-      "start"
+      "start",
     )} → *${formatEventDate(currentEvent, "start")}*`,
     endUpdate: `🕑 Fin: ${formatEventDate(
       previousEvent,
-      "end"
+      "end",
     )} → *${formatEventDate(currentEvent, "end")}*`,
   } satisfies Record<EventChange, string>;
 
@@ -63,7 +77,7 @@ Bun.serve({
         }
 
         const data = ((await request.body?.json()) as CalendarEvent[]).sort(
-          (left, right) => getEventStartTime(left) - getEventStartTime(right)
+          (left, right) => getEventStartTime(left) - getEventStartTime(right),
         );
 
         let globalChanges = await Promise.all(
@@ -76,7 +90,7 @@ Bun.serve({
 
             await redis.set(
               `cal:${incomingEvent.id}`,
-              JSON.stringify(incomingEvent)
+              JSON.stringify(incomingEvent),
             );
 
             return {
@@ -85,7 +99,7 @@ Bun.serve({
               previousEvent: storedEvent,
               currentEvent: incomingEvent,
             };
-          })
+          }),
         );
 
         // slicing because if its more than 5 then something has gone very wrong
@@ -101,7 +115,7 @@ Bun.serve({
                 currentEvent,
               });
             }
-          }
+          },
         );
 
         return new Response(`thanks`);
