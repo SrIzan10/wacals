@@ -9,15 +9,12 @@ import { getEventStartTime } from "./utils/getEventStartTime";
 import { rmSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
-// remove singletonlock
-const authPath = join(process.cwd(), ".wwebjs_auth");
-const singletonLock = join(authPath, "SingletonLock");
-const singletonCookie = join(authPath, "SingletonCookie");
-const singletonSocket = join(authPath, "SingletonSocket");
-for (const lockFile of [singletonLock, singletonCookie, singletonSocket]) {
-  if (existsSync(lockFile)) {
-    rmSync(lockFile, { force: true });
-    console.log(`[WA] removed stale lock file: ${lockFile}`);
+const sessionPath = join(process.cwd(), ".wwebjs_auth", "session");
+for (const name of ["SingletonLock", "SingletonCookie", "SingletonSocket"]) {
+  const fullPath = join(sessionPath, name);
+  if (existsSync(fullPath)) {
+    rmSync(fullPath, { force: true });
+    console.log(`[WA] removed stale lock file: ${fullPath}`);
   }
 }
 
