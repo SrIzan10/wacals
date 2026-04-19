@@ -8,6 +8,7 @@ ENV NODE_ENV=production \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
     ca-certificates \
+    dumb-init \
     fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
@@ -18,4 +19,5 @@ COPY . .
 
 EXPOSE 3000
 
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["bun", "run", "src/index.ts"]

@@ -9,7 +9,10 @@ import { getEventStartTime } from "./utils/getEventStartTime";
 import { rmSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
-const sessionPath = join(process.cwd(), ".wwebjs_auth", "session");
+const authDataPath = join(process.cwd(), ".wwebjs_auth");
+const sessionPath = join(authDataPath, "session");
+
+// remove singleton lock files that might be left from a previous run to prevent auth issues
 for (const name of ["SingletonLock", "SingletonCookie", "SingletonSocket"]) {
   const fullPath = join(sessionPath, name);
   if (existsSync(fullPath)) {
@@ -20,13 +23,40 @@ for (const name of ["SingletonLock", "SingletonCookie", "SingletonSocket"]) {
 
 const events = new EventEmitter();
 const wa = new Client({
-  authStrategy: new LocalAuth(),
+  authStrategy: new LocalAuth({ dataPath: authDataPath }),
   puppeteer: {
     args:
       process.env.NODE_ENV === "production"
         ? ["--no-sandbox", "--disable-setuid-sandbox"]
         : [],
   },
+});
+
+let isShuttingDown = false;
+
+const shutdown = async (signal: NodeJS.Signals) => {
+  if (isShuttingDown) {
+    return;
+  }
+
+  isShuttingDown = true;
+  console.log(`[APP] received ${signal}, shutting down`);
+
+  try {
+    await wa.destroy();
+  } catch (error) {
+    console.error("[WA] failed to destroy client", error);
+  } finally {
+    process.exit(0);
+  }
+};
+
+process.once("SIGINT", () => {
+  void shutdown("SIGINT");
+});
+
+process.once("SIGTERM", () => {
+  void shutdown("SIGTERM");
 });
 
 wa.once("ready", async () => {
@@ -62,7 +92,10 @@ events.on("eventUpdate", async ({ changes, previousEvent, currentEvent }) => {
   await wa.sendMessage(process.env.CHAT_ID!, message);
 });
 
-wa.initialize();
+wa.initialize().catch((error) => {
+  console.error("[WA] failed to initialize client", error);
+  process.exit(1);
+});
 
 Bun.serve({
   port: 3000,
