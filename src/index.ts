@@ -6,18 +6,23 @@ import qrcode from "qrcode-terminal";
 import { formatEventDate } from "./utils/formatEventDate";
 import { getEventChanges } from "./utils/getEventChanges";
 import { getEventStartTime } from "./utils/getEventStartTime";
-import { rmSync, existsSync } from "node:fs";
+import { lstatSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
 const authDataPath = join(process.cwd(), ".wwebjs_auth");
 const sessionPath = join(authDataPath, "session");
 
-// remove singleton lock files that might be left from a previous run to prevent auth issues
+// Chromium writes these as symlinks, so lstat is needed to catch stale broken entries.
 for (const name of ["SingletonLock", "SingletonCookie", "SingletonSocket"]) {
   const fullPath = join(sessionPath, name);
-  if (existsSync(fullPath)) {
+  try {
+    lstatSync(fullPath);
     rmSync(fullPath, { force: true });
     console.log(`[WA] removed stale lock file: ${fullPath}`);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      throw error;
+    }
   }
 }
 
