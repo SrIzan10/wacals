@@ -72,14 +72,14 @@ wa.on("qr", (qr) => {
 });
 
 events.on("eventUpdate", async ({ changes, previousEvent, currentEvent }) => {
+  const getEventTitle = (event: CalendarEvent | null) =>
+    event?.summary ?? "sin título";
+
   const changeMap = {
-    created: `📅➕ *${currentEvent.summary}* - ${formatEventDate(
+    created: `📅➕ Creado para *${formatEventDate(currentEvent, "start")}*`,
+    summaryUpdate: `📝 Nombre: ${getEventTitle(previousEvent)} → *${getEventTitle(
       currentEvent,
-      "start",
-    )}`,
-    summaryUpdate: `📝 Nombre: ${previousEvent?.summary ?? "sin título"} → *${
-      currentEvent.summary ?? "sin título"
-    }*`,
+    )}*`,
     startUpdate: `🕐 Inicio: ${formatEventDate(
       previousEvent,
       "start",
@@ -93,7 +93,7 @@ events.on("eventUpdate", async ({ changes, previousEvent, currentEvent }) => {
   const changeText = changes
     .map((change: EventChange) => `- ${changeMap[change]}`)
     .join("\n");
-  const message = `Nuevo cambio en el Calendar:\n${changeText}`;
+  const message = `Cambio en el Calendar para *${getEventTitle(currentEvent)}*:\n${changeText}`;
   await wa.sendMessage(process.env.CHAT_ID!, message);
 });
 

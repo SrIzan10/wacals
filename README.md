@@ -13,8 +13,8 @@ bun install
 populate env:  
 ```
 REDIS_URL=""
-# you are better off generating this with "openssl rand -base64 32"
-AUTH_KEY="asdfasdasddfasdfasddf"
+# generate this with "openssl rand -base64 32"
+AUTH_KEY=""
 CHAT_ID=""
 ```
 

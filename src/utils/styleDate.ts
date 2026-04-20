@@ -26,6 +26,7 @@ function getRelativeDayLabel(diffDays: number) {
 export function styleDate(dateStr: string) {
   const eventDate = new Date(dateStr);
   const day = eventDate.getDate();
+  const dayWeek = eventDate.toLocaleString("es-ES", { weekday: "long" });
   const month = eventDate.toLocaleString("es-ES", { month: "2-digit" });
   const time = eventDate.toLocaleTimeString("es-ES", {
     hour: "2-digit",
@@ -36,5 +37,5 @@ export function styleDate(dateStr: string) {
   const eventDay = getStartOfDay(eventDate);
   const diffDays = Math.round((eventDay.getTime() - today.getTime()) / DAY_IN_MS);
 
-  return `${day}/${month} (${getRelativeDayLabel(diffDays)}) ${time}`;
+  return `${dayWeek} ${day}/${month} · ${getRelativeDayLabel(diffDays)} · ${time}`;
 }
