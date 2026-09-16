@@ -5,13 +5,13 @@
     "": {
       "name": "wacals",
       "dependencies": {
+        "patch-package": "^8.0.1",
         "qrcode-terminal": "^0.12.0",
         "whatsapp-web.js": "github:wwebjs/whatsapp-web.js#1780711a1c86dfeca7c5ba6a66f950eac93dde28",
       },
       "devDependencies": {
         "@types/bun": "latest",
         "@types/qrcode-terminal": "^0.12.2",
-        "patch-package": "^8.0.1",
       },
       "peerDependencies": {
         "typescript": "^5.9.3",
