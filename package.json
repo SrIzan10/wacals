@@ -8,10 +8,10 @@
     "@types/qrcode-terminal": "^0.12.2"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "qrcode-terminal": "^0.12.0",
-    "whatsapp-web.js": "^1.34.6"
+    "whatsapp-web.js": "^1.34.7"
   }
 }

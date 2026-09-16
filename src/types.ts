@@ -47,3 +47,21 @@ export interface Reminders {
 }
 
 export type EventChange = "created" | "summaryUpdate" | "startUpdate" | "endUpdate";
+
+export interface ClassroomItem {
+  id: string;
+  type: "courseWork" | "courseWorkMaterial" | "announcement";
+  courseId: string;
+  courseName: string;
+  title?: string; // announcements have no title, just `text`
+  text?: string;
+  state: string; // PUBLISHED, DRAFT, DELETED...
+
+  creationTime: string; // ISO datetime
+  updateTime: string;   // ISO datetime // TOTRACK
+
+  alternateLink?: string;
+  dueDateTime?: string; // ISO datetime, computed from dueDate + dueTime // TOTRACK
+}
+
+export type ClassroomItemChange = "created" | "titleUpdate" | "dueDateUpdate" | "stateUpdate";
